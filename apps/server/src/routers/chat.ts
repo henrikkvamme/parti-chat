@@ -3,13 +3,19 @@ import { streamToEventIterator } from '@orpc/server';
 import { convertToModelMessages, streamText } from 'ai';
 import { z } from 'zod';
 import { MODEL } from '../domains/chat/constants/model';
-import { getSystemPrompt, getComparisonSystemPrompt } from '../domains/chat/services/system-prompt-service';
+import { extractMessageContent } from '../domains/chat/services/message-service';
+import {
+  getComparisonSystemPrompt,
+  getSystemPrompt,
+} from '../domains/chat/services/system-prompt-service';
 import {
   getPartyName,
   partyExists,
 } from '../domains/parties/services/party-service';
-import { buildRagContext, buildComparisonRagContext } from '../domains/rag/services/rag-context-service';
-import { extractMessageContent } from '../domains/chat/services/message-service';
+import {
+  buildComparisonRagContext,
+  buildRagContext,
+} from '../domains/rag/services/rag-context-service';
 import { publicProcedure } from '../lib/orpc';
 import {
   generateRequestId,
@@ -91,61 +97,69 @@ export const chatRouter = {
     return streamToEventIterator(result.toUIMessageStream());
   }),
 
-  compareChat: publicProcedure.input(compareChatInputSchema).handler(async ({ input }) => {
-    const { messages, selectedPartyIds, originalQuestion } = input;
-    const requestId = generateRequestId();
+  compareChat: publicProcedure
+    .input(compareChatInputSchema)
+    .handler(async ({ input }) => {
+      const { messages, selectedPartyIds, originalQuestion } = input;
+      const requestId = generateRequestId();
 
-    // Start performance tracking session
-    performanceLogger.startSession(requestId);
+      // Start performance tracking session
+      performanceLogger.startSession(requestId);
 
-    performanceLogger.logMilestone(requestId, 'compare-chat-request-received', {
-      messageCount: messages.length,
-      partyCount: selectedPartyIds.length,
-      parties: selectedPartyIds,
-    });
+      performanceLogger.logMilestone(
+        requestId,
+        'compare-chat-request-received',
+        {
+          messageCount: messages.length,
+          partyCount: selectedPartyIds.length,
+          parties: selectedPartyIds,
+        }
+      );
 
-    // Validate all parties exist
-    const invalidParties = selectedPartyIds.filter(id => !partyExists(id));
-    if (invalidParties.length > 0) {
-      performanceLogger.endSession(requestId);
-      throw new Error(`Invalid parties: ${invalidParties.join(', ')}`);
-    }
+      // Validate all parties exist
+      const invalidParties = selectedPartyIds.filter((id) => !partyExists(id));
+      if (invalidParties.length > 0) {
+        performanceLogger.endSession(requestId);
+        throw new Error(`Invalid parties: ${invalidParties.join(', ')}`);
+      }
 
-    // Get the question from originalQuestion or last message
-    let question = originalQuestion;
-    if (!question) {
-      const lastMessage = messages.at(-1);
-      question = lastMessage ? extractMessageContent(lastMessage) : '';
-    }
+      // Get the question from originalQuestion or last message
+      let question = originalQuestion;
+      if (!question) {
+        const lastMessage = messages.at(-1);
+        question = lastMessage ? extractMessageContent(lastMessage) : '';
+      }
 
-    if (!question) {
-      performanceLogger.endSession(requestId);
-      throw new Error('No question provided for comparison');
-    }
+      if (!question) {
+        performanceLogger.endSession(requestId);
+        throw new Error('No question provided for comparison');
+      }
 
-    // Build comparison RAG context
-    const comparisonContext = await buildComparisonRagContext(
-      selectedPartyIds,
-      question,
-      requestId
-    );
+      // Build comparison RAG context
+      const comparisonContext = await buildComparisonRagContext(
+        selectedPartyIds,
+        question,
+        requestId
+      );
 
-    const result = streamText({
-      model: openrouter(MODEL),
-      messages: convertToModelMessages(messages),
-      providerOptions: {
-        openai: {
-          reasoning_effort: 'minimal',
+      const result = streamText({
+        model: openrouter(MODEL),
+        messages: convertToModelMessages(messages),
+        providerOptions: {
+          openai: {
+            reasoning_effort: 'minimal',
+          },
         },
-      },
-      system: getComparisonSystemPrompt(comparisonContext),
-    });
+        system: getComparisonSystemPrompt(comparisonContext),
+      });
 
-    performanceLogger.logMilestone(requestId, 'compare-stream-initiated', {
-      totalResults: comparisonContext.totalResultsCount,
-      partiesWithContent: comparisonContext.partyContexts.filter(ctx => ctx.ragContext !== null).length,
-    });
+      performanceLogger.logMilestone(requestId, 'compare-stream-initiated', {
+        totalResults: comparisonContext.totalResultsCount,
+        partiesWithContent: comparisonContext.partyContexts.filter(
+          (ctx) => ctx.ragContext !== null
+        ).length,
+      });
 
-    return streamToEventIterator(result.toUIMessageStream());
-  }),
+      return streamToEventIterator(result.toUIMessageStream());
+    }),
 };

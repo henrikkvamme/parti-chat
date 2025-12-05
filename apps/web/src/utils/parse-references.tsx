@@ -84,7 +84,9 @@ function replaceReferencePlaceholders(
   }
 
   if (isValidElement(element)) {
-    const children = (element as React.ReactElement<{ children?: React.ReactNode }>).props.children;
+    const children = (
+      element as React.ReactElement<{ children?: React.ReactNode }>
+    ).props.children;
 
     if (!children) {
       return element;
@@ -117,15 +119,16 @@ export function parseReferences({
   // For streaming compatibility, we need to avoid any processing that would
   // disrupt the streaming flow. Let's check if the text appears to be "complete"
   // (not actively streaming) before applying reference processing.
-  
+
   // Regex to match page references like (s. 29) or (s.29)
   const referenceRegex = /\(s\.\s*(\d+)\)/gi;
-  
+
   // Simple heuristic: if text doesn't end with common streaming indicators
   // and contains references, then process them. Otherwise, preserve streaming.
-  const looksLikeStreaming = text.endsWith('...') || text.endsWith(' ') || text.length < 10;
+  const looksLikeStreaming =
+    text.endsWith('...') || text.endsWith(' ') || text.length < 10;
   const hasReferences = referenceRegex.test(text);
-  
+
   // If no references or looks like it's still streaming, preserve original behavior
   if (!hasReferences || looksLikeStreaming) {
     return <Streamdown>{text}</Streamdown>;

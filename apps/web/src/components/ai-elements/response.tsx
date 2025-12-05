@@ -61,7 +61,10 @@ export const Response = memo(
           let currentElement = textNode.parentElement;
           let isInsideReferenceLink = false;
           while (currentElement) {
-            if (currentElement.tagName === 'A' && currentElement.className.includes('text-blue-600')) {
+            if (
+              currentElement.tagName === 'A' &&
+              currentElement.className.includes('text-blue-600')
+            ) {
               isInsideReferenceLink = true;
               break;
             }
