@@ -20,7 +20,7 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.11",
     "@ai-sdk/openai": "^2.0.23",
-    "@langchain/textsplitters": "^0.1.0",
+    "@langchain/textsplitters": "^1.0.1",
     "@openrouter/ai-sdk-provider": "^1.1.2",
     "@orpc/client": "^1.14.5",
     "@orpc/server": "^1.14.5",
