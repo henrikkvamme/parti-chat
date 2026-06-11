@@ -79,7 +79,7 @@ export const chatRouter = {
 
     const result = streamText({
       model: openrouter(MODEL),
-      messages: convertToModelMessages(messages),
+      messages: await convertToModelMessages(messages),
       providerOptions: {
         openai: {
           reasoning_effort: 'minimal',
@@ -144,7 +144,7 @@ export const chatRouter = {
 
       const result = streamText({
         model: openrouter(MODEL),
-        messages: convertToModelMessages(messages),
+        messages: await convertToModelMessages(messages),
         providerOptions: {
           openai: {
             reasoning_effort: 'minimal',
