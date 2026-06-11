@@ -58,7 +58,7 @@
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "tailwindcss": "^4.1.12",
-    "shadcn": "^3.0.0",
+    "shadcn": "^4.11.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "typescript": "^5.9.2"
   }
