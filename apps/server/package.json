@@ -18,14 +18,14 @@
     "db:down": "docker compose down"
   },
   "dependencies": {
-    "@ai-sdk/google": "^2.0.11",
-    "@ai-sdk/openai": "^2.0.23",
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/openai": "^3.0.69",
     "@langchain/textsplitters": "^0.1.0",
-    "@openrouter/ai-sdk-provider": "^1.1.2",
+    "@openrouter/ai-sdk-provider": "^2.9.1",
     "@orpc/client": "^1.14.5",
     "@orpc/server": "^1.14.5",
     "@types/redis": "^4.0.11",
-    "ai": "^5.0.27",
+    "ai": "^6.0.201",
     "better-auth": "^1.4.2",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.45.2",
